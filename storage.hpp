@@ -188,9 +188,6 @@ private:
     void seek_to_end() {
         std::fseek(m_file, 0, SEEK_END);
     }
-    bool seek_to(std::uint64_t pos) {
-        std::fseek(m_file, pos, SEEK_SET);
-    }
 
     void write_string(const std::string &s) {
         std::uint32_t size = s.size();
@@ -205,10 +202,6 @@ private:
         write_string(b.prevsha256);
         write_string(b.data);
         write_string(b.sha256);
-    }
-
-    bool skeep_block() {
-        enum { hdr = sizeof(block::idx)+sizeof(block::timestamp) };
     }
 
     std::string read_string() {

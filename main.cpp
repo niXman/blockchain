@@ -45,6 +45,8 @@ bool get_by_idx(storage &st, std::uint64_t idx) {
     }
 
     dump(std::cout, b);
+
+    return true;
 }
 
 bool get_by_hash(storage &st, const std::string &hash) {
@@ -55,6 +57,8 @@ bool get_by_hash(storage &st, const std::string &hash) {
     }
 
     dump(std::cout, b);
+
+    return true;
 }
 
 bool recheck(std::uint64_t *bad_idx, storage &st) {
