@@ -81,7 +81,7 @@ void dump(storage &st) {
 
 /*************************************************************************************************/
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv) try {
     if ( argc == 1 || argv[1] == std::string("help") ) {
         usage(argv[0]);
 
@@ -159,11 +159,18 @@ int main(int argc, char **argv) {
 
         default: {
             usage(argv[0]);
+
             return EXIT_FAILURE;
         }
     }
 
     return EXIT_SUCCESS;
+} catch (const std::exception &ex) {
+    std::cout << "std::exception: " << ex.what() << std::endl;
+    return EXIT_FAILURE;
+} catch (...) {
+    std::cout << "unknown exception" << std::endl;
+    return EXIT_FAILURE;
 }
 
 /*************************************************************************************************/
