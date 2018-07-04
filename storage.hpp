@@ -21,9 +21,7 @@ struct storage {
         std::setvbuf(m_file, nullptr, _IONBF, 0); // unbuffered IO
     }
     ~storage() {
-        if ( m_file ) {
-            std::fclose(m_file);
-        }
+        std::fclose(m_file);
     }
 
     bool empty() const {
