@@ -5,4 +5,10 @@ set(CMAKE_CXX_STANDARD 11)
 
 set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 
-add_executable(blockchain main.cpp)
+add_executable(
+    blockchain
+    main.cpp
+    helpers.hpp
+    blockchain.hpp
+    storage.hpp
+)

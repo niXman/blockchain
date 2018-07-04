@@ -61,7 +61,8 @@ bool get_by_hash(storage &st, const std::string &hash) {
     return true;
 }
 
-bool recheck(std::uint64_t *bad_idx, storage &st) {
+storage::recheck_error
+recheck(std::uint64_t *bad_idx, storage &st) {
     return st.recheck(bad_idx);
 }
 
@@ -139,9 +140,9 @@ int main(int argc, char **argv) try {
 
         case 'r': {
             std::uint64_t bad_idx{};
-            bool ok = recheck(&bad_idx, storage);
-            if ( !ok ) {
-                std::cout << "bad block detected at idx=" << bad_idx << std::endl;
+            auto ec = recheck(&bad_idx, storage);
+            if ( ec != storage::recheck_error::ok ) {
+                std::cout << "bad block detected at idx=" << bad_idx << ", with error: " << storage::format_error(ec) << std::endl;
 
                 return EXIT_FAILURE;
             } else {

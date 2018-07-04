@@ -11,7 +11,7 @@
 /*************************************************************************************************/
 
 struct storage {
-    storage(const char *fname)
+    explicit storage(const char *fname)
         :m_file{std::fopen(fname, "a+b")}
     {
         if ( !m_file ) {
@@ -43,12 +43,9 @@ struct storage {
         }
 
         std::uint64_t n{};
-
         seek_to_begin();
-
-        block b;
         do {
-            b = read_block();
+            read_block();
             ++n;
         } while ( !at_end() );
 
@@ -73,50 +70,44 @@ struct storage {
     }
 
     block get(bool *ok, std::uint64_t idx) {
-        block b;
+        block b{};
         if ( empty() ) {
             *ok = false;
             return b;
         }
 
-        b = first();
-        if ( b.idx == idx ) {
-            *ok = true;
-            return b;
-        }
-
-        do {
-            b = next();
+        for ( b = first(); ; b = next() ) {
             if ( b.idx == idx ) {
                 *ok = true;
                 return b;
             }
-        } while ( !at_end() );
+
+            if ( at_end() ) {
+                break;
+            }
+        }
 
         *ok = false;
 
         return b;
     }
     block get(bool *ok, const std::string &hash) {
-        block b;
+        block b{};
         if ( empty() ) {
             *ok = false;
             return b;
         }
 
-        b = first();
-        if ( b.sha256 == hash ) {
-            *ok = true;
-            return b;
-        }
-
-        do {
-            b = next();
+        for ( b = first(); ; b = next() ) {
             if ( b.sha256 == hash ) {
                 *ok = true;
                 return b;
             }
-        } while ( !at_end() );
+
+            if ( at_end() ) {
+                break;
+            }
+        }
 
         *ok = false;
 
@@ -135,15 +126,40 @@ struct storage {
         return b;
     }
 
-    bool recheck(std::uint64_t *bad_idx) {
+    enum class recheck_error {
+         ok
+        ,bad_root
+        ,bad_hash
+        ,bad_idx
+        ,bad_prev_hash
+    };
+    static const char* format_error(recheck_error e) {
+        switch ( e ) {
+            case recheck_error::ok: return "ok";
+            case recheck_error::bad_root: return "bad root";
+            case recheck_error::bad_hash: return "bad hash";
+            case recheck_error::bad_idx: return "bad idx";
+            case recheck_error::bad_prev_hash: return "bad previous hash";
+            default: return "NULL";
+        }
+    }
+    recheck_error recheck(std::uint64_t *bad_idx) {
         if ( empty() ) {
-            return true;
+            return recheck_error::ok;
         }
 
         block b = first();
+        if ( b.idx != 0 ) {
+            *bad_idx = b.idx;
+            return recheck_error::bad_root;
+        }
+        if ( !b.prevsha256.empty() ) {
+            *bad_idx = b.idx;
+            return recheck_error::bad_root;
+        }
         if ( b.sha256 != picosha2::hash256_hex_string(b.data.begin(), b.data.end()) ) {
             *bad_idx = b.idx;
-            return false;
+            return recheck_error::bad_root;
         }
 
         std::uint64_t pidx = b.idx;
@@ -153,22 +169,22 @@ struct storage {
             b = next();
             if ( b.sha256 != picosha2::hash256_hex_string(b.data.begin(), b.data.end()) ) {
                 *bad_idx = b.idx;
-                return false;
+                return recheck_error::bad_hash;
             }
             if ( pidx+1 != b.idx ) {
                 *bad_idx = b.idx;
-                return false;
+                return recheck_error::bad_idx;
             }
             if ( phash != b.prevsha256 ) {
                 *bad_idx = b.idx;
-                return false;
+                return recheck_error::bad_prev_hash;
             }
 
             pidx = b.idx;
             phash = b.sha256;
         } while ( !at_end() );
 
-        return true;
+        return recheck_error::ok;
     }
 
 private:
@@ -196,7 +212,7 @@ private:
         seek_to_end();
 
         assert(std::fwrite(&b.idx, 1, sizeof(b.idx), m_file) == sizeof(b.idx));
-        assert(std::fwrite(&b.timestamp, 1, sizeof(b.timestamp), m_file) == sizeof(sizeof(b.timestamp)));
+        assert(std::fwrite(&b.timestamp, 1, sizeof(b.timestamp), m_file) == sizeof(b.timestamp));
         write_string(b.prevsha256);
         write_string(b.data);
         write_string(b.sha256);
