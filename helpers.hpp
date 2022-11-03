@@ -88,18 +88,15 @@ std::string format_timestamp(std::uint64_t ts) {
     std::snprintf(
          buf
         ,sizeof(buf)-1
-        ,"%04d-%02d-%02d %02d:%02d:%02d"
+        ,"%04d-%02d-%02d %02d:%02d:%02d.%u"
         ,tm.tm_year+1900
         ,tm.tm_mon+1
         ,tm.tm_mday
         ,tm.tm_hour
         ,tm.tm_min
         ,tm.tm_sec
+        ,ms
     );
-
-    const std::string ms_str = std::to_string(ms);
-    std::strcat(buf, ".");
-    std::strcat(buf, ms_str.c_str());
 
     return buf;
 }

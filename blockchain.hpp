@@ -7,7 +7,6 @@
 #include "picosha2.h"
 
 #include <cstdlib>
-#include <chrono>
 #include <ostream>
 
 /*************************************************************************************************/

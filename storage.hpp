@@ -2,7 +2,6 @@
 #ifndef __blockchain__storage_hpp
 #define __blockchain__storage_hpp
 
-#include "helpers.hpp"
 #include "blockchain.hpp"
 
 #include <cstdio>
@@ -17,8 +16,6 @@ struct storage {
         if ( !m_file ) {
             throw std::runtime_error("can't open/create file");
         }
-
-        std::setvbuf(m_file, nullptr, _IONBF, 0); // unbuffered IO
     }
     ~storage() {
         std::fclose(m_file);
